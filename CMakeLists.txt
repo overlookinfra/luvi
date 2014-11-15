@@ -10,6 +10,7 @@ exec_program(
 
 option(WithOpenSSL "Include OpenSSL" OFF)
 option(WithSharedOpenSSL "Shared or Static OpenSSL" ON)
+option(WithGLFW "Include GLFW" OFF)
 
 include(luv/luajit.cmake)
 include(luv/uv.cmake)
@@ -17,6 +18,17 @@ include(luv/uv.cmake)
 if (WithOpenSSL)
   include(deps/openssl.cmake)
 endif (WithOpenSSL)
+
+if (WithGLFW)
+  set(GLFW_BUILD_EXAMPLES, OFF)
+  set(GLFW_BUILD_TESTS, OFF)
+  set(GLFW_BUILD_DOCS, OFF)
+  set(GLFW_INSTALL, OFF)
+  add_subdirectory(deps/glfw)
+  include_directories(deps/glfw/include)
+  add_definitions(-DWITH_GLFW)
+  set(EXTRA_LIBS ${EXTRA_LIBS} glfw ${GLFW_LIBRARIES})
+endif (WithGLFW)
 
 add_definitions( -DLUVI_VERSION="${LUVI_VERSION}" )
 

@@ -20,6 +20,9 @@
 #ifdef WITH_OPENSSL
 #include "openssl.h"
 #endif
+#ifdef WITH_GLFW
+#include "lglfw.c"
+#endif
 #include "luvi.c"
 
 int main(int argc, char* argv[] ) {
@@ -53,6 +56,11 @@ int main(int argc, char* argv[] ) {
   // Store luvi module definition at preload.luvi
   lua_pushcfunction(L, luaopen_luvi);
   lua_setfield(L, -2, "luvi");
+
+#ifdef WITH_GLFW
+  lua_pushcfunction(L, luaopen_glfw);
+  lua_setfield(L, -2, "glfw");
+#endif
 
 #ifdef WITH_OPENSSL
   // Store luvi module definition at preload.openssl

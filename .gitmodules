@@ -10,3 +10,6 @@
 [submodule "luvi-binaries"]
 	path = luvi-binaries
 	url = https://github.com/luvit/luvi-binaries.git
+[submodule "deps/glfw"]
+	path = deps/glfw
+	url = https://github.com/glfw/glfw.git

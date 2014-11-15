@@ -2,11 +2,11 @@ BIN_ROOT=luvi-binaries/$(shell uname -s)_$(shell uname -m)
 
 NPROCS:=1
 OS:=$(shell uname -s)
-MAKEFILE_TARGET?="build/Makefile"
+#MAKEFILE_TARGET?="build/Makefile"
 
-ifeq ($(GENERATOR),Ninja)
-	MAKEFILE_TARGET="build/build.ninja"
-endif
+#ifeq ($(GENERATOR),Ninja)
+#	MAKEFILE_TARGET="build/build.ninja"
+#endif
 
 CMAKE_FLAGS+= -H. -Bbuild
 ifdef GENERATOR
@@ -31,6 +31,9 @@ large:
 
 static:
 	cmake $(CMAKE_FLAGS) -DWithOpenSSL=ON -DWithSharedOpenSSL=OFF
+
+game:
+	cmake $(CMAKE_FLAGS) -DWithGLFW=ON
 
 luv/CMakeLists.txt:
 	git submodule update --init --recursive
