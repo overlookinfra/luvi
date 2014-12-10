@@ -24,6 +24,11 @@ if (WithZLIB)
   include(deps/zlib.cmake)
 endif (WithZLIB)
 
+if (MSVC)
+  add_definitions(-DWITH_LUASERVICE)
+  include(deps/luaservice.cmake)
+endif (MSVC)
+
 add_definitions( -DLUVI_VERSION="${LUVI_VERSION}" )
 
 luajit_add_executable(luvi
