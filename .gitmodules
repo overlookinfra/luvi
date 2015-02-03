@@ -15,7 +15,7 @@
 	url = https://github.com/brimworks/lua-zlib.git
 [submodule "deps/lua-sqlite"]
 	path = deps/lua-sqlite
-	url = https://github.com/silentbicycle/lua-sqlite.git
+	url = https://github.com/brimworks/lua-sqlite.git
 [submodule "deps/lua-cjson"]
 	path = deps/lua-cjson
 	url = https://github.com/brimworks/lua-cjson/
