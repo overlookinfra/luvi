@@ -37,7 +37,6 @@
         #define GLIBC_COMPAT_SYMBOL(FFF)
     #endif
 #else
-    #warning GLIBC_COMPAT_SYMBOL not supported with target OS
     #define GLIBC_COMPAT_SYMBOL(FFF)
 #endif
 
