@@ -2,6 +2,122 @@
 
 High-level changes between release versions.
 
+## v1.0.1
+
+ - lua-openssl: Update to latest [Ryan Phillips]
+ - openssl: Update to 1.0.2a [Ryan Phillips]
+ - luv: Fix spawn memory leak [Ryan Phillips]
+ - libuv: Reap zombies on spawn [Ryan Phillips]
+ - luvi: Use static runtime on windows [Rob Emanuele]
+ - luvi: Add luvi_renamed.lib for windows DLL loading [Rob Emanuele]
+ - luvi: Fix custom LUVI_MAIN [Ryan Liptak]
+
+## v1.0.0
+
+ - luvi: Add bundle.action API for using objects from the zip bundle. [Tim Caswell]
+ - luvi: Remove auto coroutine.wrap, uv.start, and uv.stop. [Tim Caswell]
+ - luvi: Use proper mainpath for auto-require. [Tim Caswell]
+ - luvi: fix packaging, add -Wall and fix warning [Ryan Phillips]
+ - luv: expose O_EXLOCK constant on platforms that have it. [Tim Caswell]
+ - lua-openssl: Update upstream.
+
+
+## v0.8.1
+
+ - luv: Update to libuv v1.4.2-4-gfd3cf20 [Daniel Barney]
+ - cmake: Fix zlib and openssl cmake files for Solaris [Daniel Barney]
+
+## v0.8.0
+
+ - luvi: Add conventions to make bootstrapping for apps easier. [Tim Caswell]
+   - If deps/require.lua exists, auto-register it as luvit require system.
+   - If deps/pretty-print module exists, use it to set _G.p and _G.print.
+   - Run main.lua in a coroutine off the main lua "thread".
+   - Auto-start uv loop after starting main.lua.
+   - Auto-stop uv loop after main.lua finishes.
+ - luvi: export libuv externs for binary addons to use. [Ryan Phillips]
+ - luvi: Add basic packaging code using cpack. [Ryan Phillips]
+
+## v0.7.1
+
+ - luvi: Add ability to run from zips with folder at root [Tim Caswell]
+ - luvi: Export makeBundle as an API [Tim Caswell]
+ - windows: Tweak build to allow for shared libraries at runtime. [Ryan Phillips]
+
+## v0.7.0
+
+ - lua-openssl: Update to latest [Tim Caswell]
+ - luvi: Use LUV_MAIN instead of package.lua for custom main
+ - luvi: Add `publish-src`, `publish-tiny`, `publish-static`, etc targets
+         which publish to github releases for tags.
+
+## v0.6.6
+
+ - luvi: Allow custom main by reading package.lua [Tim Caswell]
+ - lua-openssl: Update for more fixes [Ryan Phillips]
+ - cmake: Add support for freebsd [Ryan Phillips]
+
+## v0.6.5
+
+ - luv: Add getpid, getuid, getgid, setuid, setgid [Ryan Phillips]
+
+## v0.6.4
+
+ - lua-openssl: Update to fix more crashers [Ryan Phillips]
+ - libuv: Update to v1.4.0 [Tim Caswell]
+ - libuv: Fix dirent types on Windows [Tim Caswell]
+ - luvi: Change LUVI_APP to use `;` instead of `:` for separators,
+         this fixes Windows paths starting with `C:/`. [Tim Caswell]
+
+## v0.6.3
+
+ - lua-openssl: for gc x509_store crash [Ryan Phillips]
+ - luvi: add version and compile options [Ryan Phillips]
+
+## v0.6.2
+
+ - libuv: Update to v1.3.0
+ - luv: Add sync versions of dns functions, add uv.pipe_getpeername [Tim Caswell]
+ - lua-openssl: Fix infinite loop [Ryan Phillips]
+
+## v0.6.1
+
+ - openssl: Fix cmake build [Ryan Phillips]
+
+## v0.6.0
+
+ - luajit: Update to v2.0.3 [Tim Caswell]
+ - libuv: Update to v1.2.1 [Tim Caswell]
+ - openssl: Update to 1.0.1l [Ryan Phillips]
+ - luv: Expose `lua_State` and `uv_loop` for luv extensions. [Rob Emanuele]
+ - luv: fix spawn invalid command. [Ryan Phillips]
+ - windows: Support for Windows Services [Rob Emanuele]
+
+Windows Service support features:
+
+ * Complete Windows services can be written in Luvi, example:
+   https://github.com/luvit/luvi/blob/master/samples/winsvc.app/main.lua.
+
+ * The service API closely mimics the Windows API to provide easy understanding
+   of writing a service in Luvi.
+
+ * Services can be written in their own process or a shared process.
+
+ * Each service runs its own main function.
+
+ * Each service has its own callback for handling service control.
+
+ * Service control functions are provided for Creating, Deleting, Starting, and
+   other control operations.
+
+ * Extended Service configuration is provided by ChangeServiceConfig2 (service
+   triggers are currently unsupported).
+
+Internally the Windows service threads feed callbacks and control operations to
+Luv.  Each service thread internally calls RegisterServiceCtrlHandlerEx as that
+much be done within the context of the calling service's thread and the control
+operations passed to that handler are passed to the user defined Lua handler.
+
 ## v0.5.7
 
  - lua: Fix handle leak for invalid commands [Ryan Phillips]

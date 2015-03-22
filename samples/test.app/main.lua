@@ -184,7 +184,7 @@ writer:add("main.lua", 'print(require("luvi").version)', 9)
 p(writer:finalize())
 
 
-local zlib 
+local zlib
 if not pcall(function() zlib = require("zlib") end) then
   print("zlib unavailable")
 else

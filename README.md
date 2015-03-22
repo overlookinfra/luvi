@@ -176,8 +176,18 @@ end
 
 ## Building from Source
 
-[Prebuilt binaries][] are kept for most platforms including Windows, OSX, Linux
-x64 and Linux for Raspberry Pi.
+We maintain several [binary releases of
+luvi](https://github.com/luvit/luvi/releases) to ease bootstrapping of lit and
+luvit apps.
+
+The following platforms are supported:
+
+ - Windows (amd64)
+ - FreeBSD 10.1 (amd64)
+ - Raspberry PI Raspbian (armv6)
+ - BeagleBone Black Debian (armv7)
+ - Ubuntu 14.04 (x86_64)
+ - OSX Yosemite (x86_64)
 
 If you want to not wait for pre-built binaries and dive right in, building is
 based on CMake and is pretty simple.
@@ -239,11 +249,11 @@ Luvi Usage Instructions:
       # Run the new luvit binary
       ./luvit
 
-      # Run an app that layers on top of luvit (note trailing colon)
-      LUVI_APP=myapp: ./luvit
+      # Run an app that layers on top of luvit (note trailing semicolon)
+      LUVI_APP=myapp; ./luvit
 
       # Build your app
-      LUVI_APP=myapp: LUVI_TARGET=mybinary ./luvit
+      LUVI_APP=myapp; LUVI_TARGET=mybinary ./luvit
 ```
 
 You can run the sample repl app by doing:

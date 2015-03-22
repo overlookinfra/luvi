@@ -3,17 +3,18 @@ configuration: Release
 environment:
   matrix:
     - BUILD_TYPE: tiny
-    - BUILD_TYPE: large
+    - BUILD_TYPE: static
 
 matrix:
   fast_finish: true
 
 build_script:
  - git submodule update --init --recursive
- - make.bat %BUILD_TYPE%
+ - Make.bat %BUILD_TYPE%
+ - Make.bat
 
 test_script:
- - make.bat test
+ - Make.bat test
 
 artifacts:
  - path: luvi.exe

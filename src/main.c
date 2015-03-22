@@ -15,23 +15,11 @@
  *
  */
 
-#include "./luvi.h"
+#include "luvi.h"
 #include "../deps/luv/src/luv.c"
 #include "lenv.c"
 #include "luvi.c"
 #include "lminiz.c"
-#ifdef WITH_OPENSSL
-#include "openssl.h"
-#endif
-#ifdef WITH_ZLIB
-LUALIB_API int luaopen_zlib(lua_State * const L);
-#endif
-#ifdef WITH_SQLITE
-LUALIB_API int luaopen_sqlite(lua_State * const L);
-#endif
-#ifdef WITH_CJSON
-LUALIB_API int luaopen_cjson(lua_State * const L);
-#endif
 
 int main(int argc, char* argv[] ) {
 
@@ -91,6 +79,14 @@ int main(int argc, char* argv[] ) {
 #ifdef WITH_CJSON
   lua_pushcfunction(L, luaopen_cjson);
   lua_setfield(L, -2, "cjson");
+#endif
+
+#ifdef WITH_WINSVC
+  // Store luvi module definition at preload.openssl
+  lua_pushcfunction(L, luaopen_winsvc);
+  lua_setfield(L, -2, "winsvc");
+  lua_pushcfunction(L, luaopen_winsvcaux);
+  lua_setfield(L, -2, "winsvcaux");
 #endif
 
   // Load the init.lua script

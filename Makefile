@@ -1,4 +1,5 @@
-BIN_ROOT=luvi-binaries/$(shell uname -s)_$(shell uname -m)
+LUVI_TAG=$(shell git describe)
+LUVI_ARCH=$(shell uname -s)_$(shell uname -m)
 
 NPROCS:=1
 OS:=$(shell uname -s)
@@ -10,39 +11,61 @@ ifdef GENERATOR
 	CMAKE_FLAGS+= -G"${GENERATOR}"
 endif
 
+CPACK_FLAGS=-DWithPackageSH=ON -DWithPackageTGZ=ON -DWithPackageTBZ2=ON
+ifdef CPACK_DEB
+	CPACK_FLAGS=-DWithPackageDEB=ON
+endif
+
+ifdef CPACK_RPM
+	CPACK_FLAGS=-DWithPackageRPM=ON
+endif
+
+ifdef CPACK_NSIS
+	CPACK_FLAGS=-DWithPackageNSIS=ON
+endif
+
+ifdef CPACK_BUNDLE
+	CPACK_FLAGS=-DWithPackageBUNDLE=ON
+endif
+
 ifeq ($(OS),Linux)
 	NPROCS:=$(shell grep -c ^processor /proc/cpuinfo)
 else ifeq ($(OS),Darwin)
 	NPROCS:=$(shell sysctl hw.ncpu | awk '{print $$2}')
 endif
 
-EXTRA_OPTIONS:=-j${NPROCS}
+ifndef GENERATOR
+  EXTRA_OPTIONS:=-j${NPROCS}
+endif
 
 # This does the actual build and configures as default flavor is there is no build folder.
 luvi: build
 	cmake --build build -- ${EXTRA_OPTIONS}
 
-# The default flavor is tiny
-build: static
+build:
+	@echo "Please run 'tiny', 'large', or 'static' make target first to configure"
 
 # Configure the build with minimal dependencies
-tiny: luv/CMakeLists.txt
-	cmake $(CMAKE_FLAGS)
+tiny: deps/luv/CMakeLists.txt
+	cmake $(CMAKE_FLAGS) $(CPACK_FLAGS)
 
 # Configure the build with everything, use shared libs when possible
-large: luv/CMakeLists.txt
-	cmake $(CMAKE_FLAGS) -DWithOpenSSL=ON -DWithZLIB=ON -DWithSqlite=ON -DWithCjson=ON
+large: deps/luv/CMakeLists.txt
+	cmake $(CMAKE_FLAGS) $(CPACK_FLAGS) -DWithOpenSSL=ON -DWithZLIB=ON -DWithSqlite=ON -DWithCjson=ON
 
 # Configure the build with everything, but statically link the deps
-static: luv/CMakeLists.txt
-	cmake $(CMAKE_FLAGS) -DWithOpenSSL=ON -DWithSharedOpenSSL=OFF -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON
+static: deps/luv/CMakeLists.txt
+	cmake $(CMAKE_FLAGS) $(CPACK_FLAGS) -DWithOpenSSL=ON -DWithSharedOpenSSL=OFF -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON
+
+package: deps/luv/CMakeLists.txt
+	cmake --build build -- package
 
 # In case the user forgot to pull in submodules, grab them.
-luv/CMakeLists.txt:
+deps/luv/CMakeLists.txt:
 	git submodule update --init --recursive
 
 clean:
-	rm -rf build
+	rm -rf build luvi.tar.gz
 
 test: luvi
 	rm -f test.bin
@@ -56,21 +79,28 @@ install: luvi
 uninstall:
 	rm -f /usr/local/bin/luvi
 
-publish-linux:
-	git submodule update --init --recursive
-	mkdir -p $(BIN_ROOT)
-	$(MAKE) clean tiny test && cp build/luvi $(BIN_ROOT)/luvi-tiny
-	$(MAKE) clean static test && cp build/luvi $(BIN_ROOT)/luvi-static
-	$(MAKE) clean large test && cp build/luvi $(BIN_ROOT)/luvi
+reset:
+	git submodule update --init --recursive && \
+	git clean -f -d && \
+	git checkout .
 
-publish-raspberry:
-	git submodule update --init --recursive
-	mkdir -p $(BIN_ROOT)
-	$(MAKE) clean tiny test && cp build/luvi $(BIN_ROOT)/luvi-tiny
-	$(MAKE) clean large test && cp build/luvi $(BIN_ROOT)/luvi
+publish-src: reset
+	tar -czvf luvi-src.tar.gz \
+	  --exclude 'luvi-src.tar.gz' --exclude '.git*' --exclude build . && \
+	github-release upload --user luvit --repo luvi --tag ${LUVI_TAG} \
+	  --file luvi-src.tar.gz --name luvi-src.tar.gz
 
-publish-darwin:
-	git submodule update --init --recursive
-	mkdir -p $(BIN_ROOT)
-	$(MAKE) clean tiny test && cp build/luvi $(BIN_ROOT)/luvi-tiny
-	$(MAKE) clean static test && cp build/luvi $(BIN_ROOT)/luvi
+publish-tiny: reset
+	$(MAKE) tiny test && \
+	github-release upload --user luvit --repo luvi --tag ${LUVI_TAG} \
+	  --file build/luvi --name luvi-tiny-${LUVI_ARCH}
+
+publish-large: reset
+	$(MAKE) large test && \
+	github-release upload --user luvit --repo luvi --tag ${LUVI_TAG} \
+	  --file build/luvi --name luvi-large-${LUVI_ARCH}
+
+publish-static: reset
+	$(MAKE) static test && \
+	github-release upload --user luvit --repo luvi --tag ${LUVI_TAG} \
+	  --file build/luvi --name luvi-static-${LUVI_ARCH}

@@ -17,8 +17,13 @@ limitations under the License.
 --]]
 
 local os = require('ffi').os
+local env = require('env')
+local uv = require('uv')
 
 local getPrefix, splitPath, joinParts
+
+local tmpBase = os == "Windows" and (env.get("TMP") or uv.cwd()) or
+                                    (env.get("TMPDIR") or '/tmp')
 
 if os == "Windows" then
   -- Windows aware path utils
@@ -95,8 +100,8 @@ local function pathJoin(...)
   -- Evaluate special segments in reverse order.
   local skip = 0
   local reversed = {}
-  for i = #parts, 1, -1 do
-    local part = parts[i]
+  for idx = #parts, 1, -1 do
+    local part = parts[idx]
     if part == '.' then
       -- Ignore
     elseif part == '..' then
@@ -110,9 +115,9 @@ local function pathJoin(...)
 
   -- Reverse the list again to get the correct order
   parts = reversed
-  for i = 1, #parts / 2 do
-    local j = #parts - i + 1
-    parts[i], parts[j] = parts[j], parts[i]
+  for idx = 1, #parts / 2 do
+    local j = #parts - idx + 1
+    parts[idx], parts[j] = parts[j], parts[idx]
   end
 
   local path = joinParts(prefix, parts)
@@ -222,8 +227,23 @@ return function(args)
     }
   end
 
+  local function chrootBundle(bundle, prefix)
+    local bundleStat = bundle.stat
+    function bundle.stat(path)
+      return bundleStat(prefix .. path)
+    end
+    local bundleReaddir = bundle.readdir
+    function bundle.readdir(path)
+      return bundleReaddir(prefix .. path)
+    end
+    local bundleReadfile = bundle.readfile
+    function bundle.readfile(path)
+      return bundleReadfile(prefix .. path)
+    end
+  end
+
   local function zipBundle(base, zip)
-    return {
+    local bundle = {
       base = base,
       stat = function (path)
         path = pathJoin("./" .. path)
@@ -234,7 +254,8 @@ return function(args)
             mtime = 0
           }
         end
-        local index, err = zip:locate_file(path)
+        local err
+        local index = zip:locate_file(path)
         if not index then
           index, err = zip:locate_file(path .. "/")
           if not index then return nil, err end
@@ -283,15 +304,23 @@ return function(args)
         return zip:extract(index)
       end
     }
+
+    -- Support zips with a single folder inserted at toplevel
+    local entries = bundle.readdir("")
+    if #entries == 1 and bundle.stat(entries[1]).type == "directory" then
+      chrootBundle(bundle, entries[1] .. '/')
+    end
+
+    return bundle
   end
 
   local function makeBundle(app)
     local miniz = require('miniz')
     if app and (#app > 0) then
-      -- Split the string by : leaving empty strings on ends
+      -- Split the string by ; leaving empty strings on ends
       local parts = {}
       local n = 1
-      for part in string.gmatch(app, '([^:]*)') do
+      for part in string.gmatch(app, '([^;]*)') do
         if not parts[n] then
           local path
           if part == "" then
@@ -326,7 +355,27 @@ return function(args)
   end
 
   local function commonBundle(bundle)
+
+    function bundle.action(path, action, ...)
+      -- If it's a real path, run it directly.
+      if uv.fs_access(path, "r") then return action(path) end
+      -- Otherwise, copy to a temporary folder and run from there
+      local data, err = bundle.readfile(path)
+      if not data then return nil, err end
+      local dir = assert(uv.fs_mkdtemp(pathJoin(tmpBase, "lib-XXXXXX")))
+      path = pathJoin(dir, path:match("[^/\\]+$"))
+      local fd = uv.fs_open(path, "w", 384) -- 0600
+      uv.fs_write(fd, data, 0)
+      uv.fs_close(fd)
+      local success, ret = pcall(action, path, ...)
+      uv.fs_unlink(path)
+      uv.fs_rmdir(dir)
+      assert(success, ret)
+      return ret
+    end
+
     luvi.bundle = bundle
+    luvi.makeBundle = makeBundle
 
     luvi.path = {
       join = pathJoin,
@@ -343,11 +392,60 @@ return function(args)
       end
     end
 
-    local base = string.match(args[0], "[^/]*$")
-    local main = base and bundle.readfile("main/" .. base .. ".lua") or bundle.readfile("main.lua")
-    if not main then error("Missing main.lua in " .. bundle.base) end
+    local mainPath, main
+    mainPath = env.get("LUVI_MAIN")
+    if mainPath then
+      main = bundle.readfile(mainPath)
+    else
+      local base = string.match(args[0], "[^/]*$")
+      if base then
+        mainPath = "main/" .. base .. ".lua"
+        main = bundle.readfile(mainPath)
+      end
+      if not main then
+        mainPath = "main.lua"
+        main = bundle.readfile(mainPath)
+      end
+    end
+
+    if not main then error("Missing " .. mainPath .. " in " .. bundle.base) end
     _G.args = args
-    return loadstring(main, "bundle:main.lua")(unpack(args))
+
+    -- Auto-register the require system if present
+    local mainRequire
+    local stat = bundle.stat("deps/require.lua")
+    if stat and stat.type == "file" then
+      bundle.register('require', "deps/require.lua")
+      mainRequire = require('require')("bundle:" .. mainPath)
+    end
+
+    -- Auto-setup global p and libuv version of print
+    if mainRequire and bundle.stat("deps/pretty-print") or bundle.stat("deps/pretty-print.lua") then
+      _G.p = mainRequire('pretty-print').prettyPrint
+    end
+
+    local fn = assert(loadstring(main, "bundle:main.lua"))
+    if mainRequire then
+      setfenv(fn, setmetatable({
+        require = mainRequire
+      }, {
+        __index=_G
+      }))
+    end
+    return fn(unpack(args))
+
+  end
+
+  local function generateOptionsString()
+    local s = {}
+    for k, v in pairs(luvi.options) do
+      if type(v) == 'boolean' then
+        table.insert(s, k)
+      else
+        table.insert(s, string.format("%s: %s", k, v))
+      end
+    end
+    return table.concat(s, "\n")
   end
 
   local function buildBundle(target, bundle)
@@ -407,13 +505,20 @@ return function(args)
     if not target or #target == 0 then return commonBundle(bundle) end
     return buildBundle(target, bundle)
   end
-  local usage = [[Luvi Usage Instructions:
+  local prefix = string.format("%s %s", args[0], luvi.version)
+  local options = generateOptionsString()
+  local usage = [[
+
+Usage:
 
     Bare Luvi uses environment variables to configure its runtime parameters.
 
-    LUVI_APP is a colon separated list of paths to folders and/or zip files to
+    LUVI_APP is a semicolon separated list of paths to folders and/or zip files to
              be used as the bundle virtual file system.  Items are searched in
              the paths from left to right.
+
+    LUVI_MAIN is the path to a custom `main.lua`.  It's path is relative to the bundle
+              root.  For example, a test runner might use `LUVI_MAIN=tests/run.lua`.
 
     LUVI_TARGET is set when you wish to build a new binary instead of running
                 directly out of the raw folders.  Set this in addition to
@@ -426,7 +531,7 @@ return function(args)
       LUVI_APP=luvit/app $(LUVI)
 
       # Run an app that layers on top of luvit
-      LUVI_APP=myapp:luvit/app $(LUVI)
+      "LUVI_APP=myapp;luvit/app" $(LUVI)
 
       # Build the luvit binary
       LUVI_APP=luvit/app LUVI_TARGET=./luvit $(LUVI)
@@ -434,13 +539,15 @@ return function(args)
       # Run the new luvit binary
       ./luvit
 
-      # Run an app that layers on top of luvit (note trailing colon)
-      LUVI_APP=myapp: ./luvit
+      # Run an app that layers on top of luvit (note trailing semicolon)
+      "LUVI_APP=myapp;" ./luvit
 
       # Build your app
-      LUVI_APP=myapp: LUVI_TARGET=mybinary ./luvit
-  ]]
-  usage = "\n" .. string.gsub(usage, "%$%(LUVI%)", args[0])
+      "LUVI_APP=myapp;" LUVI_TARGET=mybinary ./luvit]]
+  usage = string.gsub(usage, "%$%(LUVI%)", args[0])
+  print(prefix)
+  print()
+  print(options)
   print(usage)
   return -1
 
