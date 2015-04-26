@@ -51,11 +51,11 @@ tiny: deps/luv/CMakeLists.txt
 
 # Configure the build with everything, use shared libs when possible
 large: deps/luv/CMakeLists.txt
-	cmake $(CMAKE_FLAGS) $(CPACK_FLAGS) -DWithOpenSSL=ON -DWithZLIB=ON -DWithSqlite=ON -DWithCjson=ON
+	cmake $(CMAKE_FLAGS) $(CPACK_FLAGS) -DWithOpenSSL=ON -DWithZLIB=ON -DWithSqlite=ON -DWithCjson=ON -DWithYaml=ON
 
 # Configure the build with everything, but statically link the deps
 static: deps/luv/CMakeLists.txt
-	cmake $(CMAKE_FLAGS) $(CPACK_FLAGS) -DWithOpenSSL=ON -DWithSharedOpenSSL=OFF -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON
+	cmake $(CMAKE_FLAGS) $(CPACK_FLAGS) -DWithOpenSSL=ON -DWithSharedOpenSSL=OFF -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON -DWithYaml=ON -DWithSharedYaml=OFF
 
 package: deps/luv/CMakeLists.txt
 	cmake --build build -- package

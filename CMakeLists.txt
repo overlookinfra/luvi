@@ -32,6 +32,8 @@ option(WithSharedZLIB "Shared or Static ZLIB" ON)
 option(WithSqlite "Include Sqlite" OFF)
 option(WithSharedSqlite "Shared or Static Sqlite" ON)
 option(WithCjson "Include Cjson" OFF)
+option(WithYaml "Include Yaml" OFF)
+option(WithSharedYaml "Shared or Static Yaml" ON)
 
 option(WithPackageSH "Build shell-installable package." OFF)
 option(WithPackageTGZ "Build gziped tarball package." OFF)
@@ -62,6 +64,10 @@ endif (WithSqlite)
 if (WithCjson)
   include(deps/lua-cjson.cmake)
 endif (WithCjson)
+
+if (WithYaml)
+  include(deps/libyaml.cmake)
+endif (WithYaml)
 
 add_definitions( -DLUVI_VERSION="${LUVI_VERSION}" )
 
