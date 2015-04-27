@@ -41,7 +41,12 @@
 LUALIB_API int luaopen_zlib(lua_State * const L);
 #endif
 #ifdef WITH_SQLITE
+#include "../deps/sqlite/sqlite3.h"
 LUALIB_API int luaopen_sqlite(lua_State * const L);
+#endif
+#ifdef WITH_YAML
+#include "../deps/libyaml/include/yaml.h"
+LUALIB_API int luaopen_yaml(lua_State * const L);
 #endif
 #ifdef WITH_CJSON
 LUALIB_API int luaopen_cjson(lua_State * const L);

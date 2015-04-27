@@ -81,6 +81,11 @@ int main(int argc, char* argv[] ) {
   lua_setfield(L, -2, "cjson");
 #endif
 
+#ifdef WITH_YAML
+  lua_pushcfunction(L, luaopen_yaml);
+  lua_setfield(L, -2, "yaml");
+#endif
+
 #ifdef WITH_WINSVC
   // Store luvi module definition at preload.openssl
   lua_pushcfunction(L, luaopen_winsvc);
