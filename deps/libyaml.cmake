@@ -9,6 +9,7 @@ if (WithSharedYaml)
 else (WithSharedYaml)
   message("Enabling Static YAML")
   add_subdirectory(deps/libyaml)
+  add_definitions(-DYAML_DECLARE_STATIC)
   include_directories(deps/libyaml/include)
 endif (WithSharedYaml)
 

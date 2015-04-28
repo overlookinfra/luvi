@@ -7,7 +7,7 @@ GOTO :build
 
 :static
 ECHO "Building static32"
-cmake -DWithOpenSSL=ON -DWithSharedOpenSSL=OFF -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON -H. -Bbuild  -G"Visual Studio 12"
+cmake -DWithOpenSSL=ON -DWithSharedOpenSSL=OFF -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON -DWithYaml=ON -DWithSharedYaml=OFF -H. -Bbuild  -G"Visual Studio 12"
 GOTO :end
 
 :tiny
