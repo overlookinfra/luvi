@@ -6,13 +6,13 @@ IF NOT "x%1" == "x" GOTO :%1
 GOTO :build
 
 :static
-ECHO "Building static64"
-cmake -DWithOpenSSL=ON -DWithSharedOpenSSL=OFF -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON -H. -Bbuild  -G"Visual Studio 12 Win64"
+ECHO "Building static32"
+cmake -DWithOpenSSL=ON -DWithSharedOpenSSL=OFF -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON -H. -Bbuild  -G"Visual Studio 12"
 GOTO :end
 
 :tiny
-ECHO "Building tiny64"
-cmake -H. -Bbuild -G"Visual Studio 12 Win64"
+ECHO "Building tiny32"
+cmake -T v120_xp -H. -Bbuild -G"Visual Studio 12"
 GOTO :end
 
 :build
@@ -69,18 +69,18 @@ GOTO :end
 CALL make.bat reset
 CALL make.bat tiny
 CALL make.bat test
-github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file luvi.exe --name luvi-tiny-Windows-amd64.exe
-github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file build\Release\luvi.lib --name luvi-tiny-Windows-amd64.lib
-github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file build\Release\luvi_renamed.lib --name luvi_renamed-tiny-Windows-amd64.lib
+github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file luvi.exe --name luvi-tiny-Windows-amd32.exe
+github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file build\Release\luvi.lib --name luvi-tiny-Windows-amd32.lib
+github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file build\Release\luvi_renamed.lib --name luvi_renamed-tiny-Windows-amd32.lib
 GOTO :end
 
 :publish-static
 CALL make.bat reset
 CALL make.bat static
 CALL make.bat test
-github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file luvi.exe --name luvi-static-Windows-amd64.exe
-github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file build\Release\luvi.lib --name luvi-static-Windows-amd64.lib
-github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file build\Release\luvi_renamed.lib --name luvi_renamed-static-Windows-amd64.lib
+github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file luvi.exe --name luvi-static-Windows-amd32.exe
+github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file build\Release\luvi.lib --name luvi-static-Windows-amd32.lib
+github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file build\Release\luvi_renamed.lib --name luvi_renamed-static-Windows-amd32.lib
 GOTO :end
 
 :end
