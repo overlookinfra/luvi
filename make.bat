@@ -72,7 +72,7 @@ CALL make.bat test
 
 setlocal
 
-for /f %%i in ('git describe --abbrev=0') do set VERSION=%%i
+for /f %%i in ('git describe "--abbrev=0"') do set VERSION=%%i
 
 set FNAME="luvi.Windows-%PROCESSOR_ARCHITECTURE%-%VERSION%.zip"
 7z a "%FNAME%" luvi.exe
