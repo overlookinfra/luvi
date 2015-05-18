@@ -6,13 +6,13 @@ IF NOT "x%1" == "x" GOTO :%1
 GOTO :build
 
 :static
-ECHO "Building static32"
-cmake -DWithOpenSSL=ON -DWithSharedOpenSSL=OFF -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON -DWithYaml=ON -DWithSharedYaml=OFF -H. -Bbuild  -G"Visual Studio 12"
+ECHO "Building static"
+cmake -DWithOpenSSL=ON -DWithSharedOpenSSL=OFF -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON -DWithYaml=ON -DWithSharedYaml=OFF -H. -Bbuild
 GOTO :end
 
 :tiny
-ECHO "Building tiny32"
-cmake -T v120_xp -H. -Bbuild -G"Visual Studio 12"
+ECHO "Building tiny"
+cmake -T v120_xp -H. -Bbuild
 GOTO :end
 
 :build
@@ -65,22 +65,19 @@ git clean -f -d
 git checkout .
 GOTO :end
 
-:publish-tiny
-CALL make.bat reset
-CALL make.bat tiny
-CALL make.bat test
-github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file luvi.exe --name luvi-tiny-Windows-amd32.exe
-github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file build\Release\luvi.lib --name luvi-tiny-Windows-amd32.lib
-github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file build\Release\luvi_renamed.lib --name luvi_renamed-tiny-Windows-amd32.lib
-GOTO :end
-
-:publish-static
+:publish
 CALL make.bat reset
 CALL make.bat static
 CALL make.bat test
-github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file luvi.exe --name luvi-static-Windows-amd32.exe
-github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file build\Release\luvi.lib --name luvi-static-Windows-amd32.lib
-github-release upload --user luvit --repo luvi --tag %LUVI_TAG% --file build\Release\luvi_renamed.lib --name luvi_renamed-static-Windows-amd32.lib
-GOTO :end
+
+setlocal
+
+for /f %%i in ('git describe --abbrev=0') do set VERSION=%%i
+
+set FNAME="luvi.Windows-%PROCESSOR_ARCHITECTURE%-%VERSION%.zip"
+7z a "%FNAME%" luvi.exe
+
+aws --profile distelli-mvn-repo s3 cp "%FNAME%" "s3://distelli-mvn-repo/exe/Windows-%PROCESSOR_ARCHITECTURE%/%FNAME%"
+
 
 :end
