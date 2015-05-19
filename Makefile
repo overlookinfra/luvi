@@ -1,5 +1,5 @@
-LUVI_TAG:=$(shell git describe)
-LUVI_VERSION:=$(shell git describe --abbrev=0)
+LUVI_TAG:=$(shell git describe --tags)
+LUVI_VERSION:=$(shell git describe --tags --abbrev=0)
 LUVI_ARCH=$(shell uname -s)-$(shell uname -m)
 
 NPROCS:=1
