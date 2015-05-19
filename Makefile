@@ -1,5 +1,6 @@
-LUVI_TAG=$(shell git describe)
-LUVI_ARCH=$(shell uname -s)_$(shell uname -m)
+LUVI_TAG:=$(shell git describe)
+LUVI_VERSION:=$(shell git describe --abbrev=0)
+LUVI_ARCH=$(shell uname -s)-$(shell uname -m)
 
 NPROCS:=1
 OS:=$(shell uname -s)
@@ -83,6 +84,13 @@ reset:
 	git submodule update --init --recursive && \
 	git clean -f -d && \
 	git checkout .
+
+LUVI_FNAME=luvi.$(LUVI_ARCH)-$(LUVI_VERSION).gz
+publish: reset
+	$(MAKE) static test && \
+	gzip -c < build/luvi > "$(LUVI_FNAME)" && \
+	aws --profile distelli-mvn-repo s3 cp "$(LUVI_FNAME)" "s3://distelli-mvn-repo/exe/$(LUVI_ARCH)/$(LUVI_FNAME)"
+
 
 publish-src: reset
 	tar -czvf luvi-src.tar.gz \
