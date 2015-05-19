@@ -1,6 +1,6 @@
 @ECHO off
 
-for /f %%i in ('git describe') do set LUVI_TAG=%%i
+for /f %%i in ('git describe --tags') do set LUVI_TAG=%%i
 IF NOT "x%1" == "x" GOTO :%1
 
 GOTO :build
@@ -72,7 +72,7 @@ CALL make.bat test
 
 setlocal
 
-for /f %%i in ('git describe "--abbrev=0"') do set VERSION=%%i
+for /f %%i in ('git describe --tags "--abbrev=0"') do set VERSION=%%i
 
 set FNAME="luvi.Windows-%PROCESSOR_ARCHITECTURE%-%VERSION%.zip"
 7z a "%FNAME%" luvi.exe
