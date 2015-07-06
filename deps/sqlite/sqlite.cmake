@@ -13,4 +13,5 @@ add_library(sqlite3 STATIC
 )
 add_definitions(
   -DSQLITE_ENABLE_COLUMN_METADATA
+  -DHAVE_USLEEP
 )
