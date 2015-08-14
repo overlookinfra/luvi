@@ -6,7 +6,7 @@
 	url = https://github.com/luvit/openssl.git
 [submodule "deps/luv"]
 	path = deps/luv
-	url = https://github.com/luvit/luv.git
+	url = https://github.com/brimworks/luv.git
 [submodule "deps/zlib"]
 	path = deps/zlib
 	url = https://github.com/luvit/zlib.git
@@ -22,3 +22,15 @@
 [submodule "deps/lpeg"]
 	path = deps/lpeg
 	url = https://github.com/luvit/lpeg.git
+[submodule "deps/lua-sqlite"]
+	path = deps/lua-sqlite
+	url = https://github.com/brimworks/lua-sqlite.git
+[submodule "deps/lua-cjson"]
+	path = deps/lua-cjson
+	url = https://github.com/brimworks/lua-cjson.git
+[submodule "deps/lyaml"]
+	path = deps/lyaml
+	url = https://github.com/brimworks/lyaml.git
+[submodule "deps/libyaml"]
+	path = deps/libyaml
+	url = https://github.com/brimworks/libyaml.git

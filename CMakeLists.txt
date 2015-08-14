@@ -46,6 +46,12 @@ option(WithLPEG "Include " OFF)
 option(WithSharedPCRE "Shared or Static " OFF)
 option(WithZLIB "Include ZLIB" OFF)
 option(WithSharedZLIB "Shared or Static ZLIB" ON)
+option(WithSqlite "Include Sqlite" OFF)
+option(WithSharedSqlite "Shared or Static Sqlite" ON)
+option(WithCjson "Include Cjson" OFF)
+option(WithYaml "Include Yaml" OFF)
+option(WithSharedYaml "Shared or Static Yaml" ON)
+
 option(WithPackageSH "Build shell-installable package." OFF)
 option(WithPackageTGZ "Build gziped tarball package." OFF)
 option(WithPackageTBZ2 "Build bzip2'd tarball package." OFF)
@@ -96,6 +102,18 @@ endif (WithLPEG)
 if (WithZLIB)
   include(deps/zlib.cmake)
 endif (WithZLIB)
+
+if (WithSqlite)
+  include(deps/sqlite.cmake)
+endif (WithSqlite)
+
+if (WithCjson)
+  include(deps/lua-cjson.cmake)
+endif (WithCjson)
+
+if (WithYaml)
+  include(deps/libyaml.cmake)
+endif (WithYaml)
 
 add_definitions( -DLUVI_VERSION="${LUVI_VERSION}" )
 

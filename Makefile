@@ -1,11 +1,14 @@
-LUVI_TAG=$(shell git describe)
-LUVI_ARCH=$(shell uname -s)_$(shell uname -m)
+LUVI_TAG=$(shell git describe --tags)
+LUVI_VERSION:=$(shell git describe --tags --abbrev=0)
+LUVI_ARCH=$(shell uname -s)-$(shell uname -m)
 LUVI_PUBLISH_USER?=luvit
 LUVI_PUBLISH_REPO?=luvi
 
 OS:=$(shell uname -s)
 
-CMAKE_FLAGS+= -H. -Bbuild -DCMAKE_BUILD_TYPE=Release
+_PWD:=$(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+CMAKE_FLAGS+= -H. -Bbuild -DCMAKE_BUILD_TYPE=Release -D"CMAKE_C_FLAGS=-I$(_PWD)/src --include glibc-compat-symbols.h -U_FORTIFY_SOURCE -pthread" -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON -DWithYaml=ON -DWithSharedYaml=OFF
+
 ifdef GENERATOR
 	CMAKE_FLAGS+= -G"${GENERATOR}"
 endif
@@ -103,7 +106,7 @@ publish-src: reset luvi-src.tar.gz
 	github-release upload --user ${LUVI_PUBLISH_USER} --repo ${LUVI_PUBLISH_REPO} --tag ${LUVI_TAG} \
 	  --file luvi-src.tar.gz --name luvi-src-${LUVI_TAG}.tar.gz
 
-publish:
+publish-upstream:
 	$(MAKE) clean publish-tiny
 	$(MAKE) clean publish-regular
 
@@ -116,3 +119,11 @@ publish-regular: reset
 	$(MAKE) regular-asm test && \
 	github-release upload --user ${LUVI_PUBLISH_USER} --repo ${LUVI_PUBLISH_REPO} --tag ${LUVI_TAG} \
 	  --file build/luvi --name luvi-regular-${LUVI_ARCH}
+
+
+LUVI_FNAME=luvi.$(LUVI_ARCH)-$(LUVI_VERSION).gz
+publish: reset
+	$(MAKE) regular test && \
+	gzip -c < build/luvi > "$(LUVI_FNAME)" && \
+	aws --profile distelli-mvn-repo s3 cp "$(LUVI_FNAME)" "s3://distelli-mvn-repo/exe/$(LUVI_ARCH)/$(LUVI_FNAME)"
+
