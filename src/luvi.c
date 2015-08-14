@@ -41,6 +41,14 @@ LUALIB_API int luaopen_luvi(lua_State *L) {
   lua_pushstring(L, zlibVersion());
   lua_setfield(L, -2, "zlib");
 #endif
+#ifdef WITH_YAML
+  lua_pushstring(L, yaml_get_version_string());
+  lua_setfield(L, -2, "yaml");
+#endif
+#ifdef WITH_SQLITE
+  lua_pushstring(L, sqlite3_libversion());
+  lua_setfield(L, -2, "sqlite");
+#endif
 #ifdef WITH_WINSVC
   lua_pushstring(L, WINSVC_VERSION);
   lua_setfield(L, -2, "winsvc");

@@ -20,6 +20,7 @@
 #include "luv.h"
 #include "lenv.c"
 #include "luvi.c"
+#include "daemonize.c"
 #include "lminiz.c"
 #include "snapshot.c"
 #ifdef WITH_PCRE
@@ -109,6 +110,22 @@ static lua_State* vm_acquire(){
 #ifdef WITH_CUSTOM
   luvi_custom(L);
 #endif
+
+#ifdef WITH_SQLITE
+  lua_pushcfunction(L, luaopen_sqlite);
+  lua_setfield(L, -2, "sqlite");
+#endif
+
+#ifdef WITH_CJSON
+  lua_pushcfunction(L, luaopen_cjson);
+  lua_setfield(L, -2, "cjson");
+#endif
+
+#ifdef WITH_YAML
+  lua_pushcfunction(L, luaopen_yaml);
+  lua_setfield(L, -2, "yaml");
+#endif
+
   return L;
 }
 
@@ -140,6 +157,11 @@ int main(int argc, char* argv[] ) {
   lua_setfield(L, -2, "winsvc");
   lua_pushcfunction(L, luaopen_winsvcaux);
   lua_setfield(L, -2, "winsvcaux");
+#endif
+
+#ifdef WITH_DAEMONIZE
+  lua_pushcfunction(L, luaopen_daemonize);
+  lua_setfield(L, -2, "daemonize");
 #endif
 
   // Load the init.lua script

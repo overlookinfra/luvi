@@ -15,6 +15,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 --]]
+do
+    -- TODO: Fix SunOS (maybe use this patch)!
+    -- https://github.com/dmitri-shubin/luajit-solaris-x64/commit/b7bdd7cf1089ae357bb792b9c1bfe676927b0b26
+    local jit = require("jit")
+    if "POSIX" == jit.os then
+        jit.off()
+    end
+end
 
 local uv = require('uv')
 local luvi = require('luvi')
