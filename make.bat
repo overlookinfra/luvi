@@ -127,11 +127,9 @@ GOTO :end
 
 :publish
 CALL make.bat clean
-if %errorlevel% neq 0 exit /b %errorlevel%
 CALL make.bat publish32
 if %errorlevel% neq 0 exit /b %errorlevel%
 CALL make.bat clean
-if %errorlevel% neq 0 exit /b %errorlevel%
 CALL make.bat publish64
 if %errorlevel% neq 0 exit /b %errorlevel%
 
