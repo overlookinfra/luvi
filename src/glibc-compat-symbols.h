@@ -41,6 +41,6 @@
 #endif
 
 GLIBC_COMPAT_SYMBOL(memcpy)
-asm(".symver __isoc99_sscanf,sscanf@GLIBC_2.2.5");
+GLIBC_COMPAT_SYMBOL(sscanf)
  
 #endif /*__GLIBC_COMPAT_SYMBOLS_H__*/
