@@ -7,7 +7,7 @@ LUVI_PUBLISH_REPO?=luvi
 OS:=$(shell uname -s)
 
 _PWD:=$(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-CMAKE_FLAGS+= -H. -Bbuild -DCMAKE_BUILD_TYPE=Release -D"CMAKE_C_FLAGS=-I$(_PWD)/src --include glibc-compat-symbols.h -U_FORTIFY_SOURCE -pthread" -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON -DWithYaml=ON -DWithSharedYaml=OFF
+CMAKE_FLAGS+= -H. -Bbuild -DCMAKE_BUILD_TYPE=Release -D"CMAKE_C_FLAGS=-I$(_PWD)/src --include glibc-compat-symbols.h -U_FORTIFY_SOURCE -pthread -D_GNU_SOURCE" -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON -DWithYaml=ON -DWithSharedYaml=OFF
 
 ifdef GENERATOR
 	CMAKE_FLAGS+= -G"${GENERATOR}"
