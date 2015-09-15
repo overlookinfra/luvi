@@ -16,7 +16,8 @@ static void daemonize(const char* pid_file,
                const char* log_file,
                char*const* cmd)
 {
-    int pid_fd, log_fd, null_fd;
+    int pid_fd, log_fd, i;
+    long max_fd;
     ssize_t buff_len;
     pid_t child_pid, my_pid;
     char buff[1024];
@@ -114,8 +115,12 @@ static void daemonize(const char* pid_file,
         dprintf(log_fd, "dup2(%d, %d): %s\n", log_fd, STDERR_FILENO, strerror(errno));
         exit(1);
     }
-    /* May fail, we don't care: */
+    /* cleanup FDs */
     close(STDIN_FILENO);
+    max_fd = sysconf(_SC_OPEN_MAX);
+    for ( i=3; i < max_fd; i++ ) {
+        close(i);
+    }
     if ( execvp(cmd[0], cmd) < 0 ) {
         dprintf(log_fd, "execvp(%s): %s\n", cmd[0], strerror(errno));
         exit(1);
