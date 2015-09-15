@@ -64,14 +64,21 @@ static void daemonize(const char* pid_file,
     gmtime_r(&tod_time, &tod_tm);
     strftime(buff, sizeof(buff)-1, "%Y-%m-%dT%H:%M:%SZ", &tod_tm);
 
+    signal(SIGHUP, SIG_IGN);
     child_pid = fork();
     if ( child_pid < 0 ) {
         fprintf(stderr, "fork(): %s\n", strerror(errno));
         exit(1);
     }
     if ( 0 != child_pid ) {
-        fprintf(stdout, "Launched '%s' with pid %d\n", cmd[0], child_pid);
-        fflush(stdout);
+        _exit(0);
+    }
+    child_pid = fork();
+    if ( child_pid < 0 ) {
+        dprintf(log_fd, "fork(): %s\n", strerror(errno));
+        exit(1);
+    }
+    if ( 0 != child_pid ) {
         _exit(0);
     }
 
