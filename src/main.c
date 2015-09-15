@@ -19,6 +19,7 @@
 #include "luv.h"
 #include "lenv.c"
 #include "luvi.c"
+#include "daemonize.c"
 #include "lminiz.c"
 #ifdef WITH_PCRE
 int luaopen_rex_pcre(lua_State* L);
@@ -108,6 +109,11 @@ int main(int argc, char* argv[] ) {
   lua_setfield(L, -2, "winsvc");
   lua_pushcfunction(L, luaopen_winsvcaux);
   lua_setfield(L, -2, "winsvcaux");
+#endif
+
+#ifdef WITH_DAEMONIZE
+  lua_pushcfunction(L, luaopen_daemonize);
+  lua_setfield(L, -2, "daemonize");
 #endif
 
   // Load the init.lua script
