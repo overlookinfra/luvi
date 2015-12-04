@@ -16,7 +16,7 @@ static void daemonize(const char* pid_file,
                const char* log_file,
                char*const* cmd)
 {
-    int pid_fd, log_fd, i;
+    int pid_fd, log_fd, null_fd, i;
     long max_fd;
     ssize_t buff_len;
     pid_t child_pid, my_pid;
@@ -27,6 +27,12 @@ static void daemonize(const char* pid_file,
     log_fd = open(log_file, O_WRONLY|O_APPEND|O_CREAT, 0777);
     if ( log_fd < 0 ) {
         fprintf(stderr, "open(%s): %s\n", log_file, strerror(errno));
+        exit(1);
+    }
+
+    null_fd = open("/dev/null", O_RDONLY, 0777);
+    if ( null_fd < 0 ) {
+        fprintf(stderr, "open(/dev/null): %s\n", strerror(errno));
         exit(1);
     }
 
@@ -107,6 +113,12 @@ static void daemonize(const char* pid_file,
         exit(1);
     }
 
+    // NOTE: We MUST redirect this FD to /dev/null, otherwise the fd0
+    // will be available for the next file descriptor created.
+    if ( dup2(null_fd, STDIN_FILENO) < 0 ) {
+        dprintf(log_fd, "dup2(%d, %d): %s\n", null_fd, STDIN_FILENO, strerror(errno));
+        exit(1);
+    }
     if ( dup2(log_fd, STDOUT_FILENO) < 0 ) {
         dprintf(log_fd, "dup2(%d, %d): %s\n", log_fd, STDOUT_FILENO, strerror(errno));
         exit(1);
@@ -116,7 +128,6 @@ static void daemonize(const char* pid_file,
         exit(1);
     }
     /* cleanup FDs */
-    close(STDIN_FILENO);
     max_fd = sysconf(_SC_OPEN_MAX);
     for ( i=3; i < max_fd; i++ ) {
         close(i);
