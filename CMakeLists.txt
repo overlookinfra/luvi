@@ -142,6 +142,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
   set(CMAKE_EXE_LINKER_FLAGS "-Wl,-E")
 endif()
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+  set(CMAKE_EXE_LINKER_FLAGS "-lnsl ${CMAKE_EXE_LINKER_FLAGS}")
+endif()
+
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
   target_link_libraries(luvi uv luajit-5.1 luv rt ${EXTRA_LIBS})
 else()

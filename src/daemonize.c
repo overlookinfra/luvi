@@ -23,12 +23,14 @@ static void daemonize(const char* pid_file,
     char buff[1024];
     time_t tod_time;
     struct tm tod_tm;
+    FILE* logf;
 
     log_fd = open(log_file, O_WRONLY|O_APPEND|O_CREAT, 0777);
     if ( log_fd < 0 ) {
         fprintf(stderr, "open(%s): %s\n", log_file, strerror(errno));
         exit(1);
     }
+    logf = fdopen(logf, "w");
 
     null_fd = open("/dev/null", O_RDONLY, 0777);
     if ( null_fd < 0 ) {
@@ -82,7 +84,7 @@ static void daemonize(const char* pid_file,
     }
     child_pid = fork();
     if ( child_pid < 0 ) {
-        dprintf(log_fd, "fork(): %s\n", strerror(errno));
+        fprintf(logf, "fork(): %s\n", strerror(errno));
         exit(1);
     }
     if ( 0 != child_pid ) {
@@ -91,40 +93,40 @@ static void daemonize(const char* pid_file,
 
     // Write the PID:
     my_pid = getpid();
-    dprintf(log_fd, "%s started '%s' with pid %d\n", buff, cmd[0], my_pid);
+    fprintf(logf, "%s started '%s' with pid %d\n", buff, cmd[0], my_pid);
     if ( setsid() < 0 ) {
-        dprintf(log_fd, "setsid(): %s\n", strerror(errno));
+        fprintf(logf, "setsid(): %s\n", strerror(errno));
         exit(1);
     }
     if ( ftruncate(pid_fd, 0) < 0 ) {
-        dprintf(log_fd, "truncate(%s): %s\n", pid_file, strerror(errno));
+        fprintf(logf, "truncate(%s): %s\n", pid_file, strerror(errno));
         exit(1);
     }
     if ( lseek(pid_fd, SEEK_SET, 0) < 0 ) {
-        dprintf(log_fd, "seek(%s): %s\n", pid_file, strerror(errno));
+        fprintf(logf, "seek(%s): %s\n", pid_file, strerror(errno));
         exit(1);
     }
-    if ( dprintf(pid_fd, "%d\n", my_pid) < 0 ) {
-        dprintf(log_fd, "print(%s): %s\n", pid_file, strerror(errno));
+    if ( fprintf(pid_fd, "%d\n", my_pid) < 0 ) {
+        fprintf(logf, "print(%s): %s\n", pid_file, strerror(errno));
         exit(1);
     }
     if ( close(pid_fd) < 0 ) {
-        dprintf(log_fd, "close(%s): %s\n", pid_file, strerror(errno));
+        fprintf(logf, "close(%s): %s\n", pid_file, strerror(errno));
         exit(1);
     }
 
     // NOTE: We MUST redirect this FD to /dev/null, otherwise the fd0
     // will be available for the next file descriptor created.
     if ( dup2(null_fd, STDIN_FILENO) < 0 ) {
-        dprintf(log_fd, "dup2(%d, %d): %s\n", null_fd, STDIN_FILENO, strerror(errno));
+        fprintf(logf, "dup2(%d, %d): %s\n", null_fd, STDIN_FILENO, strerror(errno));
         exit(1);
     }
     if ( dup2(log_fd, STDOUT_FILENO) < 0 ) {
-        dprintf(log_fd, "dup2(%d, %d): %s\n", log_fd, STDOUT_FILENO, strerror(errno));
+        fprintf(logf, "dup2(%d, %d): %s\n", log_fd, STDOUT_FILENO, strerror(errno));
         exit(1);
     }
     if ( dup2(log_fd, STDERR_FILENO) < 0 ) {
-        dprintf(log_fd, "dup2(%d, %d): %s\n", log_fd, STDERR_FILENO, strerror(errno));
+        fprintf(logf, "dup2(%d, %d): %s\n", log_fd, STDERR_FILENO, strerror(errno));
         exit(1);
     }
     /* cleanup FDs */
@@ -133,7 +135,7 @@ static void daemonize(const char* pid_file,
         close(i);
     }
     if ( execvp(cmd[0], cmd) < 0 ) {
-        dprintf(log_fd, "execvp(%s): %s\n", cmd[0], strerror(errno));
+        fprintf(logf, "execvp(%s): %s\n", cmd[0], strerror(errno));
         exit(1);
     }
 }

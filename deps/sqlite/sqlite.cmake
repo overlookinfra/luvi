@@ -15,3 +15,6 @@ add_definitions(
   -DSQLITE_ENABLE_COLUMN_METADATA
   -DHAVE_USLEEP
 )
+if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+  set_target_properties(sqlite3 PROPERTIES COMPILE_FLAGS "-std=c99")
+endif()
