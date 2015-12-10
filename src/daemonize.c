@@ -23,14 +23,15 @@ static void daemonize(const char* pid_file,
     char buff[1024];
     time_t tod_time;
     struct tm tod_tm;
-    FILE* logf;
+    FILE *logf, *pidf;
 
     log_fd = open(log_file, O_WRONLY|O_APPEND|O_CREAT, 0777);
     if ( log_fd < 0 ) {
         fprintf(stderr, "open(%s): %s\n", log_file, strerror(errno));
         exit(1);
     }
-    logf = fdopen(logf, "w");
+    logf = fdopen(log_fd, "w");
+    setvbuf(logf, NULL, _IONBF, 0);
 
     null_fd = open("/dev/null", O_RDONLY, 0777);
     if ( null_fd < 0 ) {
@@ -106,7 +107,9 @@ static void daemonize(const char* pid_file,
         fprintf(logf, "seek(%s): %s\n", pid_file, strerror(errno));
         exit(1);
     }
-    if ( fprintf(pid_fd, "%d\n", my_pid) < 0 ) {
+    pidf = fdopen(pid_fd, "w");
+    setvbuf(pidf, NULL, _IONBF, 0);
+    if ( fprintf(pidf, "%d\n", my_pid) < 0 ) {
         fprintf(logf, "print(%s): %s\n", pid_file, strerror(errno));
         exit(1);
     }

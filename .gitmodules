@@ -9,7 +9,7 @@
 	url = https://github.com/brimworks/luv.git
 [submodule "deps/zlib"]
 	path = deps/zlib
-	url = https://github.com/luvit/zlib.git
+	url = https://github.com/brimworks/zlib.git
 [submodule "deps/lua-zlib"]
 	path = deps/lua-zlib
 	url = https://github.com/brimworks/lua-zlib.git
@@ -21,7 +21,7 @@
 	url = https://github.com/luvit/pcre.git
 [submodule "deps/lpeg"]
 	path = deps/lpeg
-	url = https://github.com/luvit/lpeg.git
+	url = https://github.com/brimworks/lpeg.git
 [submodule "deps/lua-sqlite"]
 	path = deps/lua-sqlite
 	url = https://github.com/brimworks/lua-sqlite.git
