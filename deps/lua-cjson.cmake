@@ -12,4 +12,11 @@ add_library(lua_cjson
 
 set(EXTRA_LIBS ${EXTRA_LIBS} lua_cjson)
 
+# Handle platforms missing isinf() macro (Eg, some Solaris systems).
+include(CheckSymbolExists)
+CHECK_SYMBOL_EXISTS(isinf math.h HAVE_ISINF)
+if(NOT HAVE_ISINF)
+    add_definitions(-DUSE_INTERNAL_ISINF)
+endif()
+
 add_definitions(-DWITH_CJSON)
