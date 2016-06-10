@@ -168,9 +168,16 @@ publish-regular: reset
 	  --file build/luvi --name luvi-regular-${LUVI_ARCH}
 
 
-LUVI_FNAME=luvi.$(LUVI_ARCH)-$(LUVI_VERSION).gz
+LUVI_FNAME=luvi.$(or $1,LUVI_ARCH))-$(LUVI_VERSION).gz
 publish: reset
 	$(MAKE) regular test && \
 	gzip -c < build/luvi > "$(LUVI_FNAME)" && \
 	aws --profile distelli-mvn-repo s3 cp "$(LUVI_FNAME)" "s3://distelli-mvn-repo/exe/$(LUVI_ARCH)/$(LUVI_FNAME)"
+
+publish-distelli-linux: reset
+	$(MAKE) linux-build
+	gzip -c < luvi-regular-Linux_i686 > "$(call LUVI_FNAME,Linux-i686)"
+	aws --profile distelli-mvn-repo s3 cp "$(call LUVI_FNAME,Linux-i686)" "s3://distelli-mvn-repo/exe/$(LUVI_ARCH)/$(call LUVI_FNAME,Linux-i686)"
+	gzip -c < luvi-regular-Linux_x86_64 > "$(call LUVI_FNAME,Linux-x86_64)"
+	aws --profile distelli-mvn-repo s3 cp "$(call LUVI_FNAME,Linux-x86_64)" "s3://distelli-mvn-repo/exe/$(LUVI_ARCH)/$(call LUVI_FNAME,Linux-x86_64)"
 
