@@ -141,6 +141,7 @@ linux-build-box32-tiny: luvi-src.tar.gz
 arm-build-box-regular:
 	rm -rf build && mkdir -p build
 	./arm.sh bash -c 'cd /src && make "CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE} " GENERATOR=Ninja regular && make "CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE}" GENERATOR=Ninja'
+	mv build/luvi luvi-regular-Linux_armv7l
 
 publish-src: reset luvi-src.tar.gz
 	github-release upload --user ${LUVI_PUBLISH_USER} --repo ${LUVI_PUBLISH_REPO} --tag ${LUVI_TAG} \
@@ -179,9 +180,12 @@ publish: reset
 	aws --profile distelli-mvn-repo s3 cp "$(LUVI_FNAME)" "s3://distelli-mvn-repo/exe/$(LUVI_ARCH)/$(LUVI_FNAME)"
 
 publish-distelli-linux: reset
-	$(MAKE) linux-build-box-regular linux-build-box32-regular
+	$(MAKE) linux-build-box-regular linux-build-box32-regular arm-build-box-regular
 	gzip -c < luvi-regular-Linux_i686 > "$(call LUVI_FNAME,Linux-i686)"
 	aws --profile distelli-mvn-repo s3 cp "$(call LUVI_FNAME,Linux-i686)" "s3://distelli-mvn-repo/exe/Linux-i686/$(call LUVI_FNAME,Linux-i686)"
 	gzip -c < luvi-regular-Linux_x86_64 > "$(call LUVI_FNAME,Linux-x86_64)"
 	aws --profile distelli-mvn-repo s3 cp "$(call LUVI_FNAME,Linux-x86_64)" "s3://distelli-mvn-repo/exe/Linux-x86_64/$(call LUVI_FNAME,Linux-x86_64)"
+	gzip -c < luvi-regular-Linux_armv7l > "$(call LUVI_FNAME,Linux-armv7l)"
+	aws --profile distelli-mvn-repo s3 cp "$(call LUVI_FNAME,Linux-armv7l)" "s3://distelli-mvn-repo/exe/Linux-armv7l/$(call LUVI_FNAME,Linux-armv7l)"
+
 
