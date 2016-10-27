@@ -9,7 +9,7 @@ LUVI_BINDIR?=$(LUVI_PREFIX)/bin
 OS:=$(shell uname -s)
 
 _PWD:=$(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-CMAKE_FLAGS+= -H. -Bbuild -DCMAKE_BUILD_TYPE=Release -D"CMAKE_C_FLAGS=-I$(_PWD)/src --include glibc-compat-symbols.h -U_FORTIFY_SOURCE -pthread -D_GNU_SOURCE" -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON -DWithYaml=ON -DWithSharedYaml=OFF
+override CMAKE_FLAGS+= -H. -Bbuild -DCMAKE_BUILD_TYPE=Release -D"CMAKE_C_FLAGS=-I$(_PWD)/src --include glibc-compat-symbols.h -U_FORTIFY_SOURCE -pthread -D_GNU_SOURCE" -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON -DWithYaml=ON -DWithSharedYaml=OFF
 
 ifdef GENERATOR
 	CMAKE_FLAGS+= -G"${GENERATOR}"
@@ -137,6 +137,10 @@ linux-build-box32-tiny: luvi-src.tar.gz
 	docker run -t -i --rm \
 		  -v `pwd`/build:/io phusion/holy-build-box-32:latest bash /io/holy-build.sh tiny
 	mv build/luvi luvi-tiny-Linux_i686
+
+arm-build-box-regular:
+	rm -rf build && mkdir -p build
+	./arm.sh bash -c 'cd /src && make "CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE} " GENERATOR=Ninja regular && make "CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE}" GENERATOR=Ninja'
 
 publish-src: reset luvi-src.tar.gz
 	github-release upload --user ${LUVI_PUBLISH_USER} --repo ${LUVI_PUBLISH_REPO} --tag ${LUVI_TAG} \
