@@ -9,7 +9,7 @@ LUVI_BINDIR?=$(LUVI_PREFIX)/bin
 OS:=$(shell uname -s)
 
 _PWD:=$(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-override CMAKE_FLAGS+= -H. -Bbuild -DCMAKE_BUILD_TYPE=Release -D"CMAKE_C_FLAGS=-I$(_PWD)/src --include glibc-compat-symbols.h -U_FORTIFY_SOURCE -pthread -D_GNU_SOURCE" -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON -DWithYaml=ON -DWithSharedYaml=OFF
+override CMAKE_FLAGS+= -H. -Bbuild -DCMAKE_BUILD_TYPE=Release -D"CMAKE_C_FLAGS=-I$(_PWD)/src -U_FORTIFY_SOURCE -pthread -D_GNU_SOURCE" -DWithZLIB=ON -DWithSharedZLIB=OFF -DWithSqlite=ON -DWithSharedSqlite=OFF -DWithCjson=ON -DWithYaml=ON -DWithSharedYaml=OFF
 
 ifdef GENERATOR
 	CMAKE_FLAGS+= -G"${GENERATOR}"
@@ -108,6 +108,11 @@ luvi-src.tar.gz:
 
 linux-build: linux-build-box-regular linux-build-box32-regular linux-build-box-tiny linux-build-box32-tiny
 
+alpine-build-box-regular:
+	rm -rf build && mkdir -p build
+	./alpine.sh bash -c 'cd /src && apk add --no-cache cmake make git gcc musl-dev binutils g++ && make GENERATOR=Ninja regular && make GENERATOR=Ninja'
+	mv build/luvi luvi-regular-Linux_musl_x86_64
+
 linux-build-box-regular: luvi-src.tar.gz
 	rm -rf build && mkdir -p build
 	cp packaging/holy-build.sh luvi-src.tar.gz build
@@ -180,7 +185,9 @@ publish: reset
 	aws --profile distelli-mvn-repo s3 cp "$(LUVI_FNAME)" "s3://distelli-mvn-repo/exe/$(LUVI_ARCH)/$(LUVI_FNAME)"
 
 publish-distelli-linux: reset
-	$(MAKE) linux-build-box-regular linux-build-box32-regular arm-build-box-regular
+	$(MAKE) alpine-build-box-regular linux-build-box-regular linux-build-box32-regular arm-build-box-regular
+	gzip -c < luvi-regular-Linux_musl_x86_64 > "$(call LUVI_FNAME,Linux_musl-x86_64)"
+	aws --profile distelli-mvn-repo s3 cp "$(call LUVI_FNAME,Linux_musl-x86_64)" "s3://distelli-mvn-repo/exe/Linux_musl-x86_64/$(call LUVI_FNAME,Linux_musl-x86_64)"
 	gzip -c < luvi-regular-Linux_i686 > "$(call LUVI_FNAME,Linux-i686)"
 	aws --profile distelli-mvn-repo s3 cp "$(call LUVI_FNAME,Linux-i686)" "s3://distelli-mvn-repo/exe/Linux-i686/$(call LUVI_FNAME,Linux-i686)"
 	gzip -c < luvi-regular-Linux_x86_64 > "$(call LUVI_FNAME,Linux-x86_64)"
