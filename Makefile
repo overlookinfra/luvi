@@ -143,9 +143,14 @@ linux-build-box32-tiny: luvi-src.tar.gz
 		  -v `pwd`/build:/io phusion/holy-build-box-32:latest bash /io/holy-build.sh tiny
 	mv build/luvi luvi-tiny-Linux_i686
 
-arm-build-box-regular:
+armv6l-build-box-regular:
 	rm -rf build && mkdir -p build
-	./arm.sh bash -c 'cd /src && make "CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE} " GENERATOR=Ninja regular && make "CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE}" GENERATOR=Ninja'
+	./armv6l.sh bash -c 'cd /src && make "CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE} " GENERATOR=Ninja regular && make "CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE}" GENERATOR=Ninja'
+	mv build/luvi luvi-regular-Linux_armv6l
+
+armv7l-build-box-regular:
+	rm -rf build && mkdir -p build
+	./armv7l.sh bash -c 'cd /src && make "CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE} " GENERATOR=Ninja regular && make "CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE}" GENERATOR=Ninja'
 	mv build/luvi luvi-regular-Linux_armv7l
 
 publish-src: reset luvi-src.tar.gz

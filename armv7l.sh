@@ -12,5 +12,4 @@ if ! [ "$wsroot/src/luvi" -ef "$pwd" ]; then
 fi
 mkdir -p "$wsroot/build/luvi/arm"
 
-docker run --rm -it \
-       -v "$pwd:/src" distelli/dockcross-linux-armv6 "$@"
+docker run --rm -v "$pwd:/src" dockcross/linux-armv7 "$@"
