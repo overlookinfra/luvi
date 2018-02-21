@@ -110,7 +110,7 @@ linux-build: linux-build-box-regular linux-build-box32-regular linux-build-box-t
 
 alpine-build-box-regular:
 	rm -rf build && mkdir -p build
-	./alpine.sh bash -c 'cd /src && apk add --no-cache cmake make git gcc musl-dev binutils g++ && make GENERATOR=Ninja regular && make GENERATOR=Ninja'
+	./alpine.sh sh -c 'cd /src && apk add --no-cache cmake make git gcc musl-dev binutils g++ && make GENERATOR=Ninja regular && make GENERATOR=Ninja'
 	mv build/luvi luvi-regular-Linux_musl_x86_64
 
 linux-build-box-regular: luvi-src.tar.gz
@@ -143,10 +143,19 @@ linux-build-box32-tiny: luvi-src.tar.gz
 		  -v `pwd`/build:/io phusion/holy-build-box-32:latest bash /io/holy-build.sh tiny
 	mv build/luvi luvi-tiny-Linux_i686
 
-armv6l-build-box-regular:
+# Need to build with vagrant until this is fixed:
+#    https://github.com/dockcross/dockcross/issues/99
+vagrant-up-armv6l:
 	rm -rf build && mkdir -p build
-	./armv6l.sh bash -c 'cd /src && make "CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE} " GENERATOR=Ninja regular && make "CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE}" GENERATOR=Ninja'
-	mv build/luvi luvi-regular-Linux_armv6l
+	vagrant up && vagrant provision
+
+# NOTE: We run the "clean-up" code in the Docker image since the
+# docker image is running as root.
+#
+# TODO: Fix this so we use gosu and run as the current UID/GID:
+armv6l-build-box-regular:
+	./armv6l.sh bash -c 'rm -rf build && mkdir -p build && cd /src && make "CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE} " GENERATOR=Ninja regular && make "CMAKE_FLAGS=-DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE}" GENERATOR=Ninja'
+	cp build/luvi luvi-regular-Linux_armv6l
 
 armv7l-build-box-regular:
 	rm -rf build && mkdir -p build
@@ -190,13 +199,15 @@ publish: reset
 	aws --profile distelli-mvn-repo s3 cp "$(LUVI_FNAME)" "s3://distelli-mvn-repo/exe/$(LUVI_ARCH)/$(LUVI_FNAME)"
 
 publish-distelli-linux: reset
-	$(MAKE) alpine-build-box-regular linux-build-box-regular linux-build-box32-regular arm-build-box-regular
+	$(MAKE) alpine-build-box-regular linux-build-box-regular linux-build-box32-regular vagrant-up-armv6l armv7l-build-box-regular
 	gzip -c < luvi-regular-Linux_musl_x86_64 > "$(call LUVI_FNAME,Linux_musl-x86_64)"
 	aws --profile distelli-mvn-repo s3 cp "$(call LUVI_FNAME,Linux_musl-x86_64)" "s3://distelli-mvn-repo/exe/Linux_musl-x86_64/$(call LUVI_FNAME,Linux_musl-x86_64)"
 	gzip -c < luvi-regular-Linux_i686 > "$(call LUVI_FNAME,Linux-i686)"
 	aws --profile distelli-mvn-repo s3 cp "$(call LUVI_FNAME,Linux-i686)" "s3://distelli-mvn-repo/exe/Linux-i686/$(call LUVI_FNAME,Linux-i686)"
 	gzip -c < luvi-regular-Linux_x86_64 > "$(call LUVI_FNAME,Linux-x86_64)"
 	aws --profile distelli-mvn-repo s3 cp "$(call LUVI_FNAME,Linux-x86_64)" "s3://distelli-mvn-repo/exe/Linux-x86_64/$(call LUVI_FNAME,Linux-x86_64)"
+	gzip -c < luvi-regular-Linux_armv6l > "$(call LUVI_FNAME,Linux-armv6l)"
+	aws --profile distelli-mvn-repo s3 cp "$(call LUVI_FNAME,Linux-armv6l)" "s3://distelli-mvn-repo/exe/Linux-armv6l/$(call LUVI_FNAME,Linux-armv6l)"
 	gzip -c < luvi-regular-Linux_armv7l > "$(call LUVI_FNAME,Linux-armv7l)"
 	aws --profile distelli-mvn-repo s3 cp "$(call LUVI_FNAME,Linux-armv7l)" "s3://distelli-mvn-repo/exe/Linux-armv7l/$(call LUVI_FNAME,Linux-armv7l)"
 
