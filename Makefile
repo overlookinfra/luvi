@@ -147,7 +147,7 @@ linux-build-box32-tiny: luvi-src.tar.gz
 #    https://github.com/dockcross/dockcross/issues/99
 vagrant-up-armv6l:
 	rm -rf build && mkdir -p build
-	vagrant up && vagrant provision
+	vagrant up --no-provision && vagrant provision
 
 # NOTE: We run the "clean-up" code in the Docker image since the
 # docker image is running as root.
